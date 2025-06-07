@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        background: #faf8ef;
+      }
+
+      h1 {
+        margin-top: 30px;
+      }
+
+      table {
+        margin: 20px auto;
+        /*隣接するセルで境界線を共有*/
+        border-collapse: collapse;
+        background: #bbada0;
+      }
+
+      td {
+        width: 80px;
+        height: 80px;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        /*上下方向に中央揃え*/
+        vertical-align: middle;
+        background: #cdc1b4;
+        color: #776e65;
+        border: 4px solid #bbada0;
+        /* ease: だんだん速度が上がり、最後はゆっくり終わる
+            ease-in: だんだん速度が上がり、最後まで早く終わる
+            ease-out: 最初が早くて、終わりがゆっくり
+            ease-in-out: ゆっくり始まって、だんだん速度が上がり、最後はゆっくり終わる
+            linear: 速度一定 
+            ⇒0,2秒かけて、だんだん速度を上げて最後はゆっくり終わるトランジッション*/
+        transition: all 0.2s ease;
+      }
+
+      .tile-2 {
+        background: #eee4da;
+      }
+
+      .tile-4 {
+        background: #ede0c8;
+      }
+
+      .tile-8 {
+        background: #f2b179;
+        color: #f9f6f2;
+      }
+      .tile-16 {
+        background: #f59563;
+        color: #f9f6f2;
+      }
+
+      .tile-32 {
+        background: #f67c5f;
+        color: #f9f6f2;
+      }
+
+      .tile-64 {
+        background: #f65e3b;
+        color: #f9f6f2;
+      }
+
+      .tile-128 {
+        background: #edcf72;
+        color: #f9f6f2;
+      }
+
+      .tile-256 {
+        background: #edcc61;
+        color: #f9f6f2;
+      }
+
+      .tile-512 {
+        background: #edc850;
+        color: #f9f6f2;
+      }
+
+      .tile-1024 {
+        background: #edc53f;
+        color: #f9f6f2;
+      }
+
+      .tile-2048 {
+        background: #edc22e;
+        color: #f9f6f2;
+      }
+      /*
+        .tile-{
+            background: #; 
+            color: #f9f6f2;
+        }
+
+        .tile-{
+            background: #; 
+            color: #f9f6f2;
+        }
+
+        .tile-{
+            background: #; 
+            color: #f9f6f2;
+        }
+        */
+    </style>
+  </head>
+  <body>
+    <h1>2048</h1>
+    <table id="game-board"></table>
+
+    <script>
+      const size = 4;
+      let board = [];
+
+      function init() {
+        //boardの配列を初期化　全ての配列を0で埋める
+        board = Array(size)
+          .fill()
+          .map(() => Array(size).fill(0));
+
+        //新しいTileを２つ追加
+        addTile();
+        addTile();
+
+        //表を作成
+        drawBoard();
+      }
+
+      function drawBoard() {
+        const table = document.getElementById("game-board");
+        table.innerHTML = "";
+
+        //row4*col4の表を作成
+        for (let row = 0; row < size; row++) {
+          const tr = document.createElement("tr");
+          for (let col = 0; col < size; col++) {
+            const td = document.createElement("td");
+
+            //row行col列の値を取得
+            const value = board[row][col];
+
+            //表示は真：valueの値を返す　偽＝valueの値が0 :空白で返す
+            td.textContent = value || "";
+
+            //【三項演算子】tdにクラスを追加　valueが真の場合tile-value 偽(値が空白)だったら空白
+            td.className = value ? `tile-${value}` : "";
+
+            //trにtd要素を追加
+            tr.appendChild(td);
+          }
+          //tableにtr要素を追加
+          table.appendChild(tr);
+        }
+      }
+
+      function addTile() {
+        let empty = [];
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            //board r列C行目の値が0の時、empty配列に[r,c]を追加
+            if (board[r][c] === 0) empty.push([r, c]);
+          }
+        }
+        //empty配列の要素数が０の場合処理を中止
+        if (empty.length === 0) return;
+
+        //empty配列の中から、ランダム値を作成・配置する場所を決める
+        const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+        //【三項演算子】 ランダム値が0.9より小さい　真：2　偽：4
+        board[r][c] = Math.random() < 0.9 ? 2 : 4;
+      }
+
+      function slide(row) {
+        //1行ずつ (下記move(dir)から呼び出し)
+        //真の値(偽の値(空白もしくは0の値)以外)のみ抽出して配列を作成
+        let arr = row.filter((v) => v);
+
+        //最後から2番目まで繰り返し処理
+        for (let i = 0; i < arr.length - 1; i++) {
+          //配列i番目とその次の値が一緒だったら　i番目の値*2　→ ２だったら4に変わる　次の値は0=空白にする
+          if (arr[i] === arr[i + 1]) {
+            arr[i] *= 2;
+            arr[i + 1] = 0;
+          }
+        }
+        //真の値のみ抽出(左づめ)した配列　＋　その他を０に変更した配列
+        //A .concat(B) A配列とB配列を連結
+        //fill() は Array インスタンスのメソッドで、インデックスの範囲内にある配列のすべての要素を一定の値に変更
+        return arr
+          .filter((v) => v)
+          .concat(Array(size - arr.filter((v) => v).length).fill(0));
+      }
+
+      function rotateLeft(matrix) {
+        return matrix[0].map((_, i) => matrix.map((row) => row[i])).reverse();
+      }
+
+      function rotateRight(matrix) {
+        return matrix[0].map((_, i) => matrix.map((row) => row[i]).reverse());
+      }
+
+      //下記keydownから受け取る
+      function move(dir) {
+        let rotated = board;
+
+        if (dir === "ArrowUp") rotated = rotateLeft(board);
+        if (dir === "ArrowDown") rotated = rotateRight(board);
+        if (dir === "ArrowRight")
+          rotated = board.map((row) => row.slice().reverse());
+
+        //上記のslide(row)に適用　合体＆スライド
+        let moved = rotated.map(slide);
+
+        if (dir === "ArrowUp") moved = rotateRight(moved);
+        if (dir === "ArrowDown") moved = rotateLeft(moved);
+        if (dir === "ArrowRight")
+          moved = moved.map((row) => row.slice().reverse());
+
+        if (JSON.stringify(board) !== JSON.stringify(moved)) {
+          board = moved;
+          addTile();
+          drawBoard();
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (
+          ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+        ) {
+          e.preventDefault();
+          move(e.key);
+        }
+      });
+
+      let touchStartX, touchStartY;
+
+      document.addEventListener(
+        "touchstart",
+        function (e) {
+          //touches.length : タッチ点の数
+          if (e.touches.length === 1) {
+            //ビューポートに対するタッチ点のX座標
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+          }
+        },
+        false
+      );
+
+      //touchend: タッチ面に触れなくなった指に対応するタッチ点の集合
+      document.addEventListener(
+        "touchend",
+        function (e) {
+          if (!touchStartX || !touchStartY) return;
+          //終了点から開始点の差
+          const dx = e.changedTouches[0].clientX - touchStartX;
+          const dy = e.changedTouches[0].clientY - touchStareY;
+
+          //絶対値
+          const absDx = Math.abs(dx);
+          const absDy = Math.abs(dy);
+
+          //absDxとadsDyの値のうち大きいものが30より大きい＝スワイプ判定
+          if (Math.max(absDx, absDy) > 30) {
+            if (absDx > absDy) {
+              move(dx > 0 ? "ArrowRight" : "ArrowLeft");
+            } else {
+              //Y座標は、下の方が大きい値になる　数学のグラフとは逆
+              move(dy > 0 ? "ArrowDown" : "ArrowUp");
+            }
+          }
+          //touch操作をリセットする
+          touchStartX = null;
+          touchStartY = null;
+        },
+        false
+      );
+
+      init();
+    </script>
+  </body>
+</html>
