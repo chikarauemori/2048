@@ -261,7 +261,7 @@
           if (!touchStartX || !touchStartY) return;
           //終了点から開始点の差
           const dx = e.changedTouches[0].clientX - touchStartX;
-          const dy = e.changedTouches[0].clientY - touchStareY;
+          const dy = e.changedTouches[0].clientY - touchStartY;
 
           //絶対値
           const absDx = Math.abs(dx);
