@@ -13,17 +13,13 @@
 
       h1 {
         margin-top: 30px;
-        position: fixed;
-        inset: 0;
       }
 
       table {
-        inset: 0;
-        margin: 100px auto ;
+        margin: 50px auto;
         /*隣接するセルで境界線を共有*/
         border-collapse: collapse;
         background: #bbada0;
-        position:fixed;
       }
 
       td {
@@ -250,6 +246,7 @@
         function (e) {
           //touches.length : タッチ点の数
           if (e.touches.length === 1) {
+            e.preventDefault();
             //ビューポートに対するタッチ点のX座標
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
@@ -258,12 +255,21 @@
         false
       );
 
+      document.addEventListener(
+        "touchmove",
+        function (e) {
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+
       //touchend: タッチ面に触れなくなった指に対応するタッチ点の集合
       document.addEventListener(
         "touchend",
         function (e) {
           if (!touchStartX || !touchStartY) return;
           //終了点から開始点の差
+
           const dx = e.changedTouches[0].clientX - touchStartX;
           const dy = e.changedTouches[0].clientY - touchStartY;
 
